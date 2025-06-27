@@ -1,0 +1,10 @@
+# Core dependencies
+streamlit>=1.28.0
+numpy>=1.21.0
+Pillow>=9.0.0
+scikit-learn>=1.0.0
+
+# Optional dependencies for enhanced performance
+# Uncomment if you want to use these features
+# opencv-python>=4.5.0  # For advanced image processing
+# matplotlib>=3.5.0     # For additional visualization options
