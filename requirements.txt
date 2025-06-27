@@ -4,9 +4,4 @@ numpy>=1.21.0,<2.0.0
 Pillow>=9.0.0,<11.0.0
 scikit-learn>=1.0.0,<2.0.0
 
-# System dependencies that might be needed on some platforms
-setuptools>=65.0.0
 
-# Optional dependencies for enhanced performance
-# opencv-python>=4.5.0  # For advanced image processing
-# matplotlib>=3.5.0     # For additional visualization options
