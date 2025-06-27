@@ -385,7 +385,7 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("🧱 Minecraft 3D Pixel Art Generator (Versión Robusta)")
+st.title("🧱 Pixelado Minecraft")
 st.markdown("Convierte cualquier imagen en arte pixelado 3D estilo Minecraft - **Optimizado para deployment**")
 
 # Información del sistema
@@ -433,7 +433,7 @@ if uploaded_file is not None:
         
         with col1:
             st.subheader("📷 Imagen Original")
-            st.image(image, caption="Imagen subida", use_column_width=True)
+            st.image(image, caption="Imagen subida", use_container_width=True)
             st.info(f"Dimensiones: {image.size[0]}x{image.size[1]} píxeles")
         
         with col2:
@@ -446,7 +446,7 @@ if uploaded_file is not None:
                 )
                 
                 # Mostrar resultado
-                st.image(minecraft_art, caption="Arte Minecraft 3D", use_column_width=True)
+                st.image(minecraft_art, caption="Arte Minecraft 3D", use_container_width=True)
                 
                 # Mostrar paleta
                 st.subheader("🎨 Paleta Utilizada")
@@ -476,34 +476,4 @@ if uploaded_file is not None:
 else:
     st.info("👆 Sube una imagen para comenzar")
     
-    # Características
-    st.subheader("✨ Características de la Versión Robusta")
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown("""
-        **🛡️ Ultra Robusto**
-        - Compatible sin scikit-learn
-        - Manejo de errores avanzado
-        - Funciona en cualquier plataforma
-        """)
-    
-    with col2:
-        st.markdown("""
-        **⚡ Optimizado**
-        - Cache inteligente
-        - Límites de memoria
-        - Procesamiento eficiente
-        """)
-    
-    with col3:
-        st.markdown("""
-        **🎯 Confiable**
-        - Fallbacks automáticos
-        - Validación de datos
-        - Resultados consistentes
-        """)
-
-st.markdown("---")
-st.markdown("🔧 **Versión Robusta:** Diseñada para funcionar perfectamente en cualquier entorno de deployment")
+   
