@@ -92,6 +92,19 @@ def extract_dominant_colors_sklearn(_image, num_colors=16):
         st.warning(f"Error en sklearn, usando método alternativo: {str(e)}")
         return extract_dominant_colors_fallback(_image, num_colors)
 
+def rotate_image(image, angle):
+    """Rota la imagen el ángulo especificado"""
+    try:
+        if angle == 0:
+            return image
+        
+        # Rotar imagen expandiendo el canvas para evitar recortes
+        rotated = image.rotate(angle, expand=True, fillcolor=(255, 255, 255))
+        return rotated
+    except Exception as e:
+        st.warning(f"Error al rotar imagen: {str(e)}")
+        return image
+
 def minecraft_color_adjustment(color):
     """Ajusta un color para que se vea más 'Minecraft'"""
     try:
@@ -273,13 +286,17 @@ def create_3d_block(color, size=20):
         return img
 
 @st.cache_data
-def pixelate_image_robust(image_bytes, pixel_size=16):
-    """Pixela imagen de forma robusta"""
+def pixelate_image_robust(image_bytes, pixel_size=16, rotation_angle=0):
+    """Pixela imagen de forma robusta con rotación"""
     image = Image.open(io.BytesIO(image_bytes))
     
     # Convertir a RGB si es necesario
     if image.mode not in ['RGB', 'RGBA']:
         image = image.convert('RGB')
+    
+    # Aplicar rotación si es necesaria
+    if rotation_angle != 0:
+        image = rotate_image(image, rotation_angle)
     
     width, height = image.size
     
@@ -292,14 +309,14 @@ def pixelate_image_robust(image_bytes, pixel_size=16):
     
     return pixelated
 
-def create_minecraft_3d_art(image_bytes, block_size=20, pixel_size=16, preserve_original_colors=True):
-    """Convierte imagen en arte 3D Minecraft de forma robusta"""
+def create_minecraft_3d_art(image_bytes, block_size=20, pixel_size=16, preserve_original_colors=True, rotation_angle=0):
+    """Convierte imagen en arte 3D Minecraft de forma robusta con rotación"""
     try:
-        # Crear paleta adaptada
+        # Crear paleta adaptada (usando imagen original para mejores colores)
         minecraft_colors = create_adaptive_minecraft_palette(image_bytes, preserve_original_colors)
         
-        # Pixelar imagen
-        pixelated = pixelate_image_robust(image_bytes, pixel_size)
+        # Pixelar imagen con rotación
+        pixelated = pixelate_image_robust(image_bytes, pixel_size, rotation_angle)
         
         # Obtener dimensiones
         pix_width, pix_height = pixelated.size
@@ -380,13 +397,13 @@ def show_color_palette(colors, title="Paleta de Colores"):
 
 # Configuración de página
 st.set_page_config(
-    page_title="Minecraft 3D Pixelator Robusto",
+    page_title="Minecraft 3D Pixelator con Rotación",
     page_icon="🧱",
     layout="wide"
 )
 
 st.title("🧱 Pixelado Minecraft")
-st.markdown("Convierte cualquier imagen en arte pixelado 3D estilo Minecraft - **Optimizado para deployment**")
+st.markdown("Convierte cualquier imagen en arte pixelado 3D estilo Minecraft - **Con rotación para fotos móviles**")
 
 # Información del sistema
 if not SKLEARN_AVAILABLE:
@@ -401,6 +418,30 @@ uploaded_file = st.sidebar.file_uploader(
     help="Formatos: PNG, JPG, JPEG"
 )
 
+# Control de rotación
+st.sidebar.subheader("🔄 Rotación")
+rotation_angle = st.sidebar.slider(
+    "Rotar imagen (grados)",
+    min_value=-180,
+    max_value=180,
+    value=0,
+    step=90,
+    help="Útil para corregir fotos tomadas con móvil"
+)
+
+# Botones de rotación rápida
+col_rot1, col_rot2, col_rot3 = st.sidebar.columns(3)
+with col_rot1:
+    if st.button("↻ 90°"):
+        rotation_angle = 90
+with col_rot2:
+    if st.button("↻ 180°"):
+        rotation_angle = 180
+with col_rot3:
+    if st.button("↻ 270°"):
+        rotation_angle = 270
+
+st.sidebar.subheader("🎨 Pixelado")
 pixel_size = st.sidebar.slider(
     "Nivel de pixelado",
     min_value=8,
@@ -429,20 +470,27 @@ if uploaded_file is not None:
     try:
         # Leer bytes del archivo
         image_bytes = uploaded_file.read()
-        image = Image.open(io.BytesIO(image_bytes))
+        original_image = Image.open(io.BytesIO(image_bytes))
+        
+        # Aplicar rotación a la imagen para previsualización
+        display_image = rotate_image(original_image, rotation_angle) if rotation_angle != 0 else original_image
         
         with col1:
             st.subheader("📷 Imagen Original")
-            st.image(image, caption="Imagen subida", use_container_width=True)
-            st.info(f"Dimensiones: {image.size[0]}x{image.size[1]} píxeles")
+            if rotation_angle != 0:
+                st.info(f"🔄 Rotada {rotation_angle}°")
+            st.image(display_image, caption="Imagen subida", use_container_width=True)
+            st.info(f"Dimensiones originales: {original_image.size[0]}x{original_image.size[1]} píxeles")
+            if rotation_angle != 0:
+                st.info(f"Dimensiones rotadas: {display_image.size[0]}x{display_image.size[1]} píxeles")
         
         with col2:
             st.subheader("🧱 Resultado Minecraft 3D")
             
             with st.spinner("Generando arte pixelado..."):
-                # Procesar imagen
+                # Procesar imagen con rotación
                 minecraft_art, used_palette = create_minecraft_3d_art(
-                    image_bytes, block_size, pixel_size, preserve_colors
+                    image_bytes, block_size, pixel_size, preserve_colors, rotation_angle
                 )
                 
                 # Mostrar resultado
@@ -464,7 +512,7 @@ if uploaded_file is not None:
                 st.download_button(
                     label="📥 Descargar resultado",
                     data=byte_im,
-                    file_name="minecraft_3d_art.png",
+                    file_name=f"minecraft_3d_art_rot{rotation_angle}.png",
                     mime="image/png",
                     use_container_width=True
                 )
@@ -475,5 +523,7 @@ if uploaded_file is not None:
 
 else:
     st.info("👆 Sube una imagen para comenzar")
-    
-   
+    st.markdown("### 💡 Consejos:")
+    st.markdown("- Usa el control de rotación si tu foto está girada")
+    st.markdown("- Los botones de rotación rápida (90°, 180°, 270°) facilitan la corrección")
+    st.markdown("- La rotación es especialmente útil para fotos tomadas con móvil")
